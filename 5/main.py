@@ -52,6 +52,6 @@ for pass_row, pass_col in passports:
   saved_ids.append(row*8 + col)
   #input()
 print('---')
-for i in range(0,len(saved_ids)-1):
-    if abs(saved_ids[i]-saved_ids[i+1]) == 2:
-      print(saved_ids[i], saved_ids[i+1])
+for i in range(0, 965):
+  if i not in saved_ids and i-1 in saved_ids and i+1 in saved_ids:
+    print(i)
