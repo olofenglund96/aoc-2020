@@ -1,49 +1,63 @@
-import numpy as np
-
 lines = []
-with open('13/test', 'r') as file:
+with open('12/input', 'r') as file:
   lines = [line.strip() for line in file.readlines()]
 
-busses = []
+actions = []
+for line in lines:
+  t, v = line[0], line[1:]
 
-i = 0
-for bus_id in lines[1].split(','):
-  if bus_id != 'x':
-    busses.append((int(bus_id), i))
-    i = 0
+  actions.append((t, int(v)))
 
-  i += 1
+#print(actions)
+direction = 1
+direction_dict = {'N': (-1, 0), 'E': (0, 1), 'S': (1, 0), 'W': (0, -1)}
+num_to_dir = ['N', 'E', 'S', 'W']
+loc = (0, 0)
+wp_loc = [-1, 10]
+
+def add_vecs(v1, v2):
+  v3 = []
+  for i in range(len(v1)):
+    v3.append(v1[i] + v2[i])
+
+  return tuple(v3)
+
+def mul_scal(v, s):
+  v3 = []
+  for i in range(len(v)):
+    v3.append(v[i] * s)
+
+  return tuple(v3)
+
+def rotate_waypoint(loc, wp_loc, rot):
+  wpy, wpx = wp_loc
+
+  if rot == 90:
+    new_wp_loc = [wpx, -wpy]
+  elif rot == 180:
+    new_wp_loc = [-wpy, -wpx]
+  else:
+    new_wp_loc = [-wpx, wpy]
+
+  return new_wp_loc
 
 
-first_matches = []
-
-def find_first_match(n1, n2, diff):
-  for i in range(n1*n2):
-    for j in range(n1*n2):
-      if j*n2 - i*n1 == 1:
-        return i, j
 
 
-for i in range(len(busses)-1):
-  n1, n2 = busses[i], busses[i+1]
+for action in actions:
+  t, v = action
 
-  x, y = find_first_match(n1[0], n2[0], n2[1])
+  if t == 'F':
+    loc = add_vecs(loc, mul_scal(wp_loc, v))
+  elif t == 'L':
+    wp_loc = rotate_waypoint(loc, wp_loc, 360-v)
+  elif t == 'R':
+    wp_loc = rotate_waypoint(loc, wp_loc, v)
+  else:
+    wp_loc = add_vecs(wp_loc, mul_scal(direction_dict[t], v))
 
-  first_matches.append((x, y))
+  #if direction
 
-print(first_matches)
+x, y = loc
 
-
-i = 0
-prod = 1
-j = 0
-while True:
-  p1, p2 = first_matches[i]
-  n1, n2 = busses[i][0], busses[i+1][0]
-
-  print(p1, p2, n1, n2, (p2+n1*j)*n2 - (p1+n2*j)*n1)
-
-  j += 1
-
-  if j == 3:
-    break
+print(abs(x) + abs(y))

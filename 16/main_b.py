@@ -1,63 +1,99 @@
+import numpy as np
+
 lines = []
-with open('12/input', 'r') as file:
+with open('16/input', 'r') as file:
   lines = [line.strip() for line in file.readlines()]
 
-actions = []
-for line in lines:
-  t, v = line[0], line[1:]
+field_ranges = {}
+field_set = []
+my_ticket = []
+nearby_tickets = []
 
-  actions.append((t, int(v)))
+i = 0
+while True:
+  line = lines[i]
+  i += 1
+  #print(line)
+  if line == '':
+    break
 
-#print(actions)
-direction = 1
-direction_dict = {'N': (-1, 0), 'E': (0, 1), 'S': (1, 0), 'W': (0, -1)}
-num_to_dir = ['N', 'E', 'S', 'W']
-loc = (0, 0)
-wp_loc = [-1, 10]
+  cidx = line.index(":") + 1
+  ranges = line[cidx:].strip()
 
-def add_vecs(v1, v2):
-  v3 = []
-  for i in range(len(v1)):
-    v3.append(v1[i] + v2[i])
+  rangei = [list(np.arange(int(rng.split('-')[0]), int(rng.split('-')[1])+1)) for rng in ranges.split(" or ")]
+  range_flat = []
+  for arr in rangei:
+    #print(arr)
+    range_flat += arr
 
-  return tuple(v3)
-
-def mul_scal(v, s):
-  v3 = []
-  for i in range(len(v)):
-    v3.append(v[i] * s)
-
-  return tuple(v3)
-
-def rotate_waypoint(loc, wp_loc, rot):
-  wpy, wpx = wp_loc
-
-  if rot == 90:
-    new_wp_loc = [wpx, -wpy]
-  elif rot == 180:
-    new_wp_loc = [-wpy, -wpx]
-  else:
-    new_wp_loc = [-wpx, wpy]
-
-  return new_wp_loc
+  #print(rangei, range_flat)
+  field_ranges[line[:cidx-1]] = range_flat
+  field_set += range_flat
 
 
+#print(field_ranges)
+
+valid_nums = set(field_set)
+
+#print(valid_nums)
+
+i += 1
+my_ticket = [int(n) for n in lines[i].split(',')]
+valid_lines = []
+
+def find_invalid_nums_in_line(line):
+  for num in line.split(','):
+    num = int(num)
+    if num not in valid_nums:
+      return True
+  
+  return False
+
+find_invalid_nums_in_line(lines[i])
+  
+i += 3
+nt = np.zeros((len(lines[i:]), len(lines[i].split(','))))
+for j, line in enumerate(lines[i:]):
+  if not find_invalid_nums_in_line(line):
+    lsplit = [int(l) for l in line.split(',')]
+    nt[j,:] = np.array(lsplit)
 
 
-for action in actions:
-  t, v = action
+print(nt.shape)
+nt = nt[~np.all(nt == 0, axis=1), :]
+print(nt.shape)
+#print(nt, field_ranges)
 
-  if t == 'F':
-    loc = add_vecs(loc, mul_scal(wp_loc, v))
-  elif t == 'L':
-    wp_loc = rotate_waypoint(loc, wp_loc, 360-v)
-  elif t == 'R':
-    wp_loc = rotate_waypoint(loc, wp_loc, v)
-  else:
-    wp_loc = add_vecs(wp_loc, mul_scal(direction_dict[t], v))
+from collections import defaultdict
 
-  #if direction
+col_to_key = defaultdict(list)
+for i in range(nt.shape[1]):
+  for k, v in field_ranges.items():
+    print(k, nt[:,i])
+    if np.isin(nt[:,i] , v).all():
+      col_to_key[i].append(k)
 
-x, y = loc
+ctk = dict(col_to_key)
+final_map = {}
+while len(ctk.keys()) > 0:
+  ld = {k:len(v) for k, v in ctk.items()}
+  print(ld)
+  k = min(ld, key=ld.get)
+  print(ctk[k], k)
+  col = ctk[k][0]
+  final_map[col] = k
+  del ctk[k]
 
-print(abs(x) + abs(y))
+  for k, v in ctk.items():
+    if col in v:
+      v.remove(col)
+
+
+num = 1
+
+for k, v in final_map.items():
+  if 'departure' in k:
+    print(k, v)
+    num *= my_ticket[v]
+
+print(num)

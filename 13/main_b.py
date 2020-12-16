@@ -1,63 +1,69 @@
+import numpy as np
+import time
+
+t0 = time.time()
 lines = []
-with open('12/input', 'r') as file:
+with open('13/input', 'r') as file:
   lines = [line.strip() for line in file.readlines()]
 
-actions = []
-for line in lines:
-  t, v = line[0], line[1:]
+busses = []
 
-  actions.append((t, int(v)))
+i = 0
+for bus_id in lines[1].split(','):
+  if bus_id != 'x':
+    busses.append((int(bus_id), i))
+    i = 0
+  i += 1
 
-#print(actions)
-direction = 1
-direction_dict = {'N': (-1, 0), 'E': (0, 1), 'S': (1, 0), 'W': (0, -1)}
-num_to_dir = ['N', 'E', 'S', 'W']
-loc = (0, 0)
-wp_loc = [-1, 10]
+print(busses)
 
-def add_vecs(v1, v2):
-  v3 = []
-  for i in range(len(v1)):
-    v3.append(v1[i] + v2[i])
+def find_first_match(n1, n2, diff, i1, n_offset):
+  i = n_offset
+  matches = 0
+  i0, j0 = 0, 0
+  while True:
+    jnum = diff + i*n1
 
-  return tuple(v3)
+    if jnum % n2 == 0:
+      #print(f"i: {i}, j:{int(jnum / n2)}, j0:{j0}")
+      if matches == 1:
+        return i0, j0, int(jnum / n2) - j0
+      elif matches == 0:
+        i0 = i
+        j0 = int(jnum / n2)
+      
+      matches += 1
+    
+    i += i1
+        
 
-def mul_scal(v, s):
-  v3 = []
-  for i in range(len(v)):
-    v3.append(v[i] * s)
+# n1, n2, n3, n4 = busses[0], busses[1], busses[2], busses[3]
+# x, y = find_first_match(n1[0], n2[0], n2[1], 1, 1)
 
-  return tuple(v3)
+# print(x, y, n1[0]*x, n2[0]*y)
 
-def rotate_waypoint(loc, wp_loc, rot):
-  wpy, wpx = wp_loc
+# x1, y1 = find_first_match(n2[0], n3[0], n3[1], y, 1)
+# print(x1, y1, n2[0]*x1, n3[0]*y1)
 
-  if rot == 90:
-    new_wp_loc = [wpx, -wpy]
-  elif rot == 180:
-    new_wp_loc = [-wpy, -wpx]
-  else:
-    new_wp_loc = [-wpx, wpy]
+# x2, y2 = find_first_match(n3[0], n4[0], n4[1], y1, 1)
+# print(x2, y2, n3[0]*x2, n4[0]*y2)
 
-  return new_wp_loc
+i = 0
+n_incr = 1
+n_offset = 0
+for i in range(len(busses)-1):
+  n1_ix, n1_offset = busses[i]
+  n2_ix, n2_offset = busses[i+1]
 
+  x, y, diff = find_first_match(n1_ix, n2_ix, n2_offset, n_incr, n_offset)
 
+  n_incr = diff
+  n_offset = y
+  #print(x, y, n1_ix*x, n2_ix*y)
 
+offset_sum = sum([a[1] for a in busses])
+print(n2_ix*y - offset_sum)
 
-for action in actions:
-  t, v = action
+t1 = time.time()
 
-  if t == 'F':
-    loc = add_vecs(loc, mul_scal(wp_loc, v))
-  elif t == 'L':
-    wp_loc = rotate_waypoint(loc, wp_loc, 360-v)
-  elif t == 'R':
-    wp_loc = rotate_waypoint(loc, wp_loc, v)
-  else:
-    wp_loc = add_vecs(wp_loc, mul_scal(direction_dict[t], v))
-
-  #if direction
-
-x, y = loc
-
-print(abs(x) + abs(y))
+print(t1 - t0)
