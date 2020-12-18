@@ -45,7 +45,7 @@ def find_invalid_nums_in_line(line):
       invalid_nums.append(num)
 
 find_invalid_nums_in_line(lines[i])
-  
+
 i += 3
 
 for line in lines[i:]:
